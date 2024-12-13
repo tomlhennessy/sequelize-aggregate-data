@@ -102,7 +102,36 @@ app.get('/cats/:id/toys', async (req, res, next) => {
 
 // BONUS STEP: Create an endpoint for GET /data-summary that includes a summary
 // of all the aggregate data according to spec
-// Your code here
+app.get('/data-summary', async (req, res, next) => {
+    // aggregate data for all toys
+    const toysCount = await Toy.count();
+    const toysMinPrice = await Toy.min('price');
+    const toysMaxPrice = await Toy.max('price');
+    const toysSumPrice = await Toy.sum('price');
+    const toysAvgPrice = await Toy.findAll({
+        attributes: [[sequelize.fn('AVG', sequelize.col('price')), 'averagePrice']],
+        raw: true
+    }).then(data => data[0].averagePrice);
+
+    // aggregate data for all cats
+    const catsCount = await Cat.count();
+
+    // respond with data summary
+    res.json({
+        dataSummary: {
+            toys: {
+                count: toysCount,
+                minPrice: toysMinPrice,
+                maxPrice: toysMaxPrice,
+                sumPrice: toysSumPrice,
+                avgPrice: parseFloat(toysAvgPrice) // parse average as a float
+            },
+            cats: {
+                count: catsCount
+            }
+        }
+    })
+})
 
 
 
